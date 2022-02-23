@@ -1,0 +1,47 @@
+#import the necessary packages
+import numpy as np
+import argparse
+import cv2
+from picamera.array import PiRGBArray
+from picamera import PiCamera
+import time
+
+#construct the argument parse and parse the arguments
+ap = argparse.ArgumentParser()
+ap.add_argument("-i", "--image", help = "path to the image")
+args = vars(ap.parse_args())
+
+# initialize the camera and grab a reference to the raw camera capture
+camera = PiCamera()
+camera.resolution = (1920,1088)
+rawCapture = PiRGBArray(camera)
+ 
+# allow the camera to warmup
+time.sleep(0.1)
+
+#load the image
+camera.capture(rawCapture, format="bgr")
+image=rawCapture.array
+imagehsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+#define the list of boundaries
+lower_yellow = np.array([15,50,50])
+upper_yellow = np.array([35,255,255])
+   
+#find colors within the specified boundaries and apply the mask
+mask = cv2.inRange(imagehsv, lower_yellow, upper_yellow)
+output = cv2.bitwise_and(image, image, mask=mask)
+
+#cleaning up image
+kernel = np.ones((15,15),np.uint8)
+opening = cv2.morphologyEx(image, cv2.MORPH_CLOSE,kernel)
+
+#show the images
+cv2.imshow("images", np.hstack([image, output]))
+
+#hexagon location
+imageG = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+imageLL = cv2.threshold(imageG,50,255,cv2.THRESH_BINARY)
+tup=np.nonzero(imageLL[1])
+print("Hexagon located at ", round(np.mean(tup[0])), round(np.mean(tup[1])))
+cv2.waitKey(0)
