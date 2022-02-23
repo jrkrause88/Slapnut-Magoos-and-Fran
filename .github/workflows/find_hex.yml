@@ -1,0 +1,52 @@
+import numpy as np
+import cv2 as cv
+
+cap = cv.VideoCapture(0)
+if not cap.isOpened():
+    print("Cannot open camera")
+    exit()
+while True:
+    # Capture frame-by-frame
+    ret, frame = cap.read()
+    # if frame is read correctly ret is True
+    if not ret:
+        print("Can't receive frame (stream end?). Exiting ...")
+        break
+    # replace following functions with my functions
+
+
+
+   
+    #define the list of boundaries
+    lower_yellow = np.array([15,50,50])
+    upper_yellow = np.array([35,255,255])
+   
+    #find colors within the specified boundaries and apply the mask
+    mask = cv2.inRange(imagehsv, lower_yellow, upper_yellow)
+    output = cv2.bitwise_and(image, image, mask=mask)
+
+    #cleaning up image
+    kernel = np.ones((15,15),np.uint8)
+    opening = cv2.morphologyEx(image, cv2.MORPH_CLOSE,kernel)
+
+    #show the images
+    cv2.imshow("images", np.hstack([image, output]))
+
+    #hexagon location
+    imageG = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    imageLL = cv2.threshold(imageG,50,255,cv2.THRESH_BINARY)
+    tup=np.nonzero(imageLL[1])
+    print("Hexagon located at ", round(np.mean(tup[0])), round(np.mean(tup[1])))
+
+
+
+
+
+   
+    # Display the resulting frame
+    cv.imshow('frame', gray)
+    if cv.waitKey(1) == ord('q'):
+        break
+# When everything done, release the capture
+cap.release()
+cv.destroyAllWindows()
